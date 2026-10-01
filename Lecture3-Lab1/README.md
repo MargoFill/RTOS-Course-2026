@@ -6,7 +6,8 @@ The assignment purpose is to observe:
 * Task priorities
 * Preemption
 * Equal-priority behaviour
-in Real Time Systems
+
+in Real Time Systems.
 ## Hardware and software
 ## Test scenarios
 ## Prediction and observation table
