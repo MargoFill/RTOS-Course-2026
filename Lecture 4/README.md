@@ -8,6 +8,10 @@
 
 <img width="1917" height="1027" alt="8192" src="https://github.com/user-attachments/assets/7fef8dd5-a1a4-4439-9543-8190cc87835c" />
 
+| Task Stack Size | Free Heap Before Tasks | Free Heap After Task A | Free Heap After Task B |
+| :--- | :--- | :--- | :--- |
+| **4096 bytes** | 349356 bytes | 344628 bytes | 339900 bytes |
+| **8192 bytes** | 349356 bytes | 340276 bytes | 331452 bytes |
 
 ## Questions
 a. Did the free heap change when you increased the task stack size?
