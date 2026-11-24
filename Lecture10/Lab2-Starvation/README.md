@@ -14,8 +14,6 @@ It starves all lower-priority tasks—freezing display updates, logging, and bac
 1. Add periodic blocking delays such as `vTaskDelay()` or `vTaskDelayUntil()` inside the high-priority task's loop.  
 2. Make the high-priority task event-driven by blocking on a semaphore, queue, or task notification (e.g., `xSemaphoreTake()` or `ulTaskNotifyTake()`) until new sensor data is ready instead of continuously polling.
 
-delays, mutexes
-
 ## Part B
 
 ### Step 1 – Observing starvation
