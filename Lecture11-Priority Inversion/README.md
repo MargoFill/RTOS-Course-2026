@@ -34,12 +34,105 @@ When `Task_H` (priority 3) blocks waiting for the mutex held by `Task_L` (priori
 
 ### Step 1 - Binary semaphore
 
+**Serial Monitor Output**
+
+```
+=== Demo 3: Priority Inversion | USE_MUTEX 0 (binary semaphore, NO inheritance) ===
+[    0 ms] L: taking lock
+[  101 ms] H: needs the lock
+[  101 ms] L: critical section 1/3, my priority = 1
+[  151 ms] M: starts 1000 ms of work (does not use the lock)
+[ 1151 ms] M: finished
+[ 1201 ms] L: critical section 2/3, my priority = 1
+[ 1301 ms] L: critical section 3/3, my priority = 1
+[ 1301 ms] H: got the lock after waiting 1200 ms
+[ 1351 ms] H: done
+```
+
+**Waiting time reported by Task_H:** 1200 ms
+
+**Priority printed by Task_L:** my priority = 1
+
+**Completion order:** Task_M  → Task_L → Task_H
+
 ### Step 2 - Mutex with priority inheritance
 
+**Serial Monitor Output**
+
+```
+=== Demo 3: Priority Inversion | USE_MUTEX 1 (mutex, priority inheritance) ===
+[    0 ms] L: taking lock
+[  101 ms] H: needs the lock
+[  101 ms] L: critical section 1/3, my priority = 3
+[  201 ms] L: critical section 2/3, my priority = 3
+[  301 ms] L: critical section 3/3, my priority = 3
+[  301 ms] H: got the lock after waiting 200 ms
+[  351 ms] H: done
+[  351 ms] M: starts 1000 ms of work (does not use the lock)
+[ 1351 ms] M: finished
+
+```
+
+**Waiting time reported by Task_H:** 200 ms
+
+**Priority printed by Task_L:** my priority = 3
+
+**Completion order:** Task_L → Task_H → Task_M
 
 
+#### Comparison Table
+
+| Observation | Binary semaphore (`USE_MUTEX 0`) | Mutex (`USE_MUTEX 1`) |
+| :--- | :--- | :--- |
+| **Task_H waiting time** | `1200 ms` | `200 ms` |
+| **Task_L printed priority** | `1` (stays `1` throughout) | `3` (stays `3` throughout)|
+| **Does Task_M delay Task_L?** | Yes (by 1000 ms) | No |
+| **Does priority inheritance occur?** | No | Yes |
+
+**Comparison with Part A predictions:**  
+The measurements match the predictions from Part A. With the binary semaphore (`USE_MUTEX 0`), `Task_M` preempted `Task_L` and delayed `Task_H` by 1000 ms (resulting in a 1200 ms total wait). With the mutex (`USE_MUTEX 1`), `Task_L` inherited priority `3` as soon as `Task_H` requested the lock, preventing `Task_M` from preempting it and keeping `Task_H`'s wait time at 200 ms.
 
 ### Step 3 - Change the workload
+
+Prediction (before changing the code):
+
+With USE_MUTEX 0, increasing Task_M's workload from 1000 ms to 2000 ms will increase Task_H's waiting time by 1000 ms (to roughly 2200 ms), because Task_M will block Task_L for twice as long. With USE_MUTEX 1, Task_H's waiting time will stay around 200 ms because Task_M still cannot preempt Task_L while Task_L holds the mutex at inherited priority 3.
+
+
+**Serial Monitor Output**
+
+```
+=== Demo 3: Priority Inversion | USE_MUTEX 0 (binary semaphore, NO inheritance) ===
+[    0 ms] L: taking lock
+[  101 ms] H: needs the lock
+[  101 ms] L: critical section 1/3, my priority = 1
+[  151 ms] M: starts 1000 ms of work (does not use the lock)
+[ 2151 ms] M: finished
+[ 2201 ms] L: critical section 2/3, my priority = 1
+[ 2301 ms] L: critical section 3/3, my priority = 1
+[ 2301 ms] H: got the lock after waiting 2200 ms
+[ 2351 ms] H: done
+```
+
+```
+=== Demo 3: Priority Inversion | USE_MUTEX 1 (mutex, priority inheritance) ===
+[    0 ms] L: taking lock
+[  101 ms] H: needs the lock
+[  101 ms] L: critical section 1/3, my priority = 3
+[  201 ms] L: critical section 2/3, my priority = 3
+[  301 ms] L: critical section 3/3, my priority = 3
+[  301 ms] H: got the lock after waiting 200 ms
+[  351 ms] H: done
+[  351 ms] M: starts 1000 ms of work (does not use the lock)
+[ 2351 ms] M: finished
+```
+
+**New waiting time (USE_MUTEX 0):** 2200 ms 
+**New waiting time (USE_MUTEX 1):** 200 ms
+
+**Why increasing Task_M's workload affects the two configurations differently:**
+
+In USE_MUTEX 0, Task_H's delay depends directly on Task_M's execution time because Task_M preempts Task_L and postpones the release of the semaphore. In USE_MUTEX 1, priority inheritance elevates Task_L above Task_M, so Task_M does not run until after Task_L releases the mutex and Task_H completes—making Task_H's wait time independent of Task_M's workload.
 
 ## Part C
 
@@ -58,6 +151,3 @@ The FreeRTOS scheduler always runs the highest-priority Ready task on the core. 
 **4. What is the main difference between a binary semaphore and a mutex in this demonstration?**
 
 A mutex enforces ownership and includes priority inheritance, so a low-priority holder inherits a blocked task's high priority and cannot be delayed by medium-priority tasks that would otherwise preempt it. A binary semaphore has no ownership or priority inheritance mechanism, leaving the system vulnerable to priority inversion.
-
-## Part C
-№№
