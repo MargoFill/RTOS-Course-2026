@@ -3,12 +3,15 @@
 ## Part A
 
 **1. Which two tasks can cause a deadlock? Explain how they can end up waiting for each other.**  
+
 `Task_Sensor` and `Task_Logger` can cause a deadlock. `Task_Sensor` acquires `i2cMutex` first and then waits for `uartMutex`, while `Task_Logger` acquires `uartMutex` first and then waits for `i2cMutex`. If both tasks lock their first mutex at the same time, neither can continue because each holds the mutex the other needs.
 
 **2. Can Task_Display create a circular wait by itself? Explain why or why not.**  
+
 No. A circular wait requires at least two tasks forming a closed chain where each task holds one resource and waits for another. `Task_Display` only acquires a single mutex (`i2cMutex`), so it never holds one mutex while waiting for a second one.
 
 **3. Which Coffman condition is removed when all tasks acquire mutexes in the same order?**  
+
 Acquiring mutexes in the same global order removes the **circular wait** condition.
 
 
